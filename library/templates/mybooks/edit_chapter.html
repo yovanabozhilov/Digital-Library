@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if chapter %}Редакция{% else %}Нова{% endif %} глава</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.css">
+</head>
+<body class="welcome">
+<header>
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+    <nav>
+        <a href="{% url 'main' %}">Основна страница</a>
+        <a href="{% url 'profile' %}">Профил</a>
+        <a href="{% url 'logout' %}">Изход</a>
+    </nav>
+</header>
+
+<main class="profile-main">
+    <div class="profile-box">
+        <a href="{% url 'view_mybook' book.id %}" class="back-link">← Назад към книгата</a>
+        <h2>{% if chapter %}Редактирай{% else %}Създай{% endif %} глава</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="title">Заглавие:</label>
+            <input type="text" id="title" name="title" value="{{ chapter.title|default:'' }}" required style="padding: 10px; width: 97%; margin-bottom: 15px; font-size: 16px;">
+
+            <label for="editor">Съдържание:</label>
+            <div id="editor">{{ chapter.content|default:"<p></p>"|safe }}</div>
+            <div id="word-count">Брой думи: 0</div>
+            <input type="hidden" name="content" id="hidden-content">
+
+            <div style="margin-top: 20px;">
+                <button type="submit" class="action-button">Запази</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<footer>
+    Digital Library © 2025
+</footer>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/46.0.0/ckeditor5.umd.js"></script>
+<script src="{% static 'js/mybook_js/chapter_editor.js' %}"></script>
+
+</body>
+</html>

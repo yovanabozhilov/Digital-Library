@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Начална страница</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="welcome">
+<header>
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+    <nav>
+        <a href="{% url 'main' %}">Основна страница</a>
+        <a href="{% url 'profile' %}">Профил</a>
+        <a href="{% url 'login' %}">Вход</a>
+        <a href="{% url 'register' %}">Регистрация</a>
+    </nav>
+</header>
+<div class="container">
+    <div class="card">
+        <div class="card-content">
+            <h1>Добре дошъл в Digital Library!</h1>
+            <p>Това е твоето лично дигитално пространство за четене и писане.</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'main' %}">Започни</a>
+            {% else %}
+                <a href="{% url 'login' %}">Започни</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<footer>
+    Digital Library © 2025
+</footer>
+</body>
+</html>

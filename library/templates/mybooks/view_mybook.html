@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }} | Моята книга</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="welcome">
+<header>
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+    <nav>
+        <a href="{% url 'main' %}">Основна страница</a>
+        <a href="{% url 'create_mybook' %}">Създай книга</a>
+        <a href="{% url 'profile' %}">Профил</a>
+        <a href="{% url 'logout' %}">Изход</a>
+    </nav>
+</header>
+
+<main class="profile-main">
+    <div class="profile-box">
+        <h2 class="book-title">
+            {{ book.title }}
+            <a href="#" id="toggle-edit-title" class="edit-icon">✏️</a>
+        </h2>
+
+        <div id="edit-title-form" class="edit-title-form">
+            <form method="post">
+                {% csrf_token %}
+                <input type="text" name="new_title" value="{{ book.title }}" class="title-input">
+                <button type="submit" class="action-button">Запази</button>
+            </form>
+        </div>
+
+        <div class="button-row">
+            <a href="{% url 'add_chapter' book.id %}">
+                <button class="action-button">➕ Добави глава</button>
+            </a>
+            <form action="{% url 'delete_mybook' book.id %}" method="post" class="delete-book-form">
+                {% csrf_token %}
+                <button type="submit" class="action-button danger" style="padding-top:8px; padding-bottom:8px; font-size: 15px;">Изтрий книгата</button>
+            </form>
+        </div>
+
+
+        <hr class="divider">
+
+        {% for chapter in chapters %}
+            <div class="chapter-preview">
+                <h3 class="chapter-heading">
+                    {{ chapter.title }}
+                     <span class="chapter-actions">
+                        <a href="{% url 'edit_chapter' book.id chapter.id %}" class="edit-icon">✏️</a>
+                        <form method="post" action="{% url 'delete_chapter' book.id chapter.id %}" class="delete-chapter-form">
+                            {% csrf_token %}
+                            <button type="submit" title="Изтрий" class="delete-icon" style="background:none; border:none; padding:0; margin:0; cursor:pointer;">🗑️</button>
+                        </form>
+                    </span>
+                </h3>
+                <div class="chapter-content">
+                    {{ chapter.content|safe }}
+                </div>
+            </div>
+        {% empty %}
+            <p class="no-chapters">Все още няма глави.</p>
+        {% endfor %}
+
+        {% if chapters %}
+            <div class="button-row">
+                <a href="{% url 'export_mybook_pdf' book.id %}">
+                    <button class="action-button">Изтегли PDF</button>
+                </a>
+                <a href="{% url 'export_mybook_docx' book.id %}">
+                    <button class="action-button">Изтегли DOCX</button>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</main>
+
+<footer>
+    Digital Library © 2025
+</footer>
+
+<script src="{% static 'js/mybook_js/mybook_viewer.js' %}"></script>
+</body>
+</html>

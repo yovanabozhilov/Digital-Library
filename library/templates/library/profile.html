@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Профил на потребителя</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="welcome profile-page">
+<header>
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+    <nav>
+        <a href="{% url 'main' %}">Основна страница</a>
+        <a href="{% url 'profile' %}" class="active">Профил</a>
+        <a href="{% url 'logout' %}">Изход</a>
+    </nav>
+</header>
+<main class="profile-main">
+
+    <div class="profile-title">Здравей, {{ request.user.username }}!</div>
+
+    <section class="card-box">
+        <h3>📊 Статистика за четене</h3>
+        <ul>
+            <li><strong>Днес:</strong> {{ stats.today_minutes }}</li>
+            <li><strong>Седмица:</strong> {{ stats.week_minutes }}</li>
+            <li><strong>Месец:</strong> {{ stats.month_minutes }}</li>
+        </ul>
+    </section>
+
+    <section class="card-box">
+        <div class="mybooks-header">
+            <div class="mybooks-title">✍️ Моите книги</div>
+            <a href="{% url 'create_mybook' %}" class="write-button create-new-book">Създай нова книга</a>
+        </div>
+        {% if mybooks %}
+            <ul>
+                {% for mybook in mybooks %}
+                    <li><a href="{% url 'view_mybook' mybook.id %}">{{ mybook.title }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Още не си написал книга.</p>
+        {% endif %}
+    </section>
+
+    <section class="card-box">
+        <h3>🖋️ Последни цитати</h3>
+        {% if latest_quotes %}
+            <ul>
+                {% for quote in latest_quotes %}
+                    <li>„{{ quote.quote_text|truncatewords:10 }}“ — <em>{{ quote.book.title }}</em></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Все още няма запазени цитати.</p>
+        {% endif %}
+    </section>
+
+    <section class="card-box">
+        <h3>📖 Последни търсени думи</h3>
+        {% if recent_words %}
+            <ul>
+                {% for word in recent_words %}
+                    <li>{{ word.word }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Не си търсил нищо още.</p>
+        {% endif %}
+    </section>
+</main>
+<footer>
+    Digital Library © 2025
+</footer>
+</body>
+</html>

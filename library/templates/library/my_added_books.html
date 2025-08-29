@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Моите добавени книги</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/my_added_books.css' %}">
+</head>
+<body class="welcome">
+<header class="my-added-books-header">
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+    <nav>
+        <a href="{% url 'my_added_books' %}" class="active">Моята библиотека</a>
+        <a href="{% url 'main' %}">Основна страница</a>
+        <a href="{% url 'profile' %}">Профил</a>
+        <a href="{% url 'logout' %}">Изход</a>
+    </nav>
+</header>
+
+<form method="get" class="my-added-books-filter-form">
+    <select name="genre">
+        <option value="">-- Жанр --</option>
+        {% for g in genres %}
+            <option value="{{ g.0 }}" {% if selected.genre == g.0 %}selected{% endif %}>{{ g.1 }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="mood">
+        <option value="">-- Настроение --</option>
+        {% for m in moods %}
+            <option value="{{ m.0 }}" {% if selected.mood == m.0 %}selected{% endif %}>{{ m.1 }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="text" name="title" placeholder="Име на книга" value="{{ selected.title }}">
+    <input type="text" name="author" placeholder="Автор" value="{{ selected.author }}">
+    <button type="submit"> Филтрирай </button>
+</form>
+
+<main class="my-added-books-main">
+    {% if books %}
+        <div class="my-added-books-grid">
+            {% for book in books %}
+                <div class="my-added-books-card">
+                    {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" alt="Корица на {{ book.title }}" class="my-added-books-cover">
+                    {% else %}
+                        <div class="my-added-books-cover placeholder">Няма корица</div>
+                    {% endif %}
+                    <h4>{{ book.title }}</h4>
+                    <p><strong>{{ book.author }}</strong></p>
+                    <div class="my-added-books-btn-group">
+                        <a href="{% url 'book_detail' book.id %}" class="my-added-books-btn-detail">Детайли</a>
+                        {% if book.ebookfile %}
+                            {% if book.ebookfile.file.name|lower|slice:"-4:" == ".pdf" %}
+                                <a href="{% url 'read_book' book.id %}" class="my-added-books-btn-read">Чети</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <form method="post" action="{% url 'delete_book' book.id %}" onsubmit="return confirm('Сигурни ли сте, че искате да изтриете тази книга?');">
+                        {% csrf_token %}
+                        <button type="submit" class="my-added-books-btn-delete">Изтрий книгата</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="my-added-books-no-books">Няма добавени книги.</p>
+    {% endif %}
+</main>
+
+<footer class="my-added-books-footer">
+    Digital Library © 2025
+</footer>
+</body>
+</html>

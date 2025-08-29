@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="auth">
+<header>
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+</header>
+
+<div class="container">
+    <div class="register-box">
+        <div class="register-image"></div>
+        <div class="register-form">
+            <h2>Регистрирай се</h2>
+
+            {% if messages %}
+                <div class="django-messages inside-form" aria-live="polite" aria-atomic="true">
+                    {% for message in messages %}
+                        <div class="msg msg-{{ message.tags|default:'info' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <label for="username">Потребителско име:</label>
+                <input
+                    type="text"
+                    name="username"
+                    id="username"
+                    value="{{ request.POST.username|default_if_none:'' }}"
+                    required
+                >
+
+                <label for="email">Имейл:</label>
+                <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    value="{{ request.POST.email|default_if_none:'' }}"
+                    required
+                >
+
+                <label for="password">Парола:</label>
+                <input type="password" name="password" id="password" required>
+
+                <label for="password2">Повтори паролата:</label>
+                <input type="password" name="password2" id="password2" required>
+
+                <button id="register-btn" type="submit">Създай профил</button>
+            </form>
+
+            <p>Вече имаш акаунт? <a href="{% url 'login' %}">Влез тук</a></p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    Digital Library © 2025
+</footer>
+</body>
+</html>

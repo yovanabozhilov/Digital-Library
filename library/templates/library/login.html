@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="auth">
+<header>
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+</header>
+
+<div class="container">
+    <div class="login-box">
+        <div class="login-image"></div>
+        <div class="login-form">
+            <h2>Добре дошъл!</h2>
+
+            {% if messages %}
+                <div class="django-messages inside-form" aria-live="polite" aria-atomic="true">
+                    {% for message in messages %}
+                        <div class="msg msg-{{ message.tags|default:'info' }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <label for="id_username">Потребителско име:</label>
+                <input
+                    type="text"
+                    name="username"
+                    id="id_username"
+                    value="{{ request.POST.username|default_if_none:'' }}"
+                    required
+                >
+
+                <label for="id_password">Парола:</label>
+                <input type="password" name="password" id="id_password" required>
+
+                <button id="login-btn" type="submit">Вход</button>
+            </form>
+
+            <p>Нямаш акаунт? <a href="{% url 'register' %}">Регистрирай се тук</a></p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    Digital Library © 2025
+</footer>
+</body>
+</html>

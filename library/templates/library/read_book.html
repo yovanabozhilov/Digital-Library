@@ -1,0 +1,329 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }} - Четене</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/read-book.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+</head>
+<body class="welcome read-book-page">
+<header class="read-book-header">
+    <img src="{% static 'images/logo.png' %}" class="read-book-logo" alt="Logo">
+    <nav class="read-book-nav">
+        <a href="{% url 'main' %}">Основна страница</a>
+        <a href="{% url 'my_added_books' %}">Моята библиотека</a>
+        <a href="{% url 'profile' %}">Профил</a>
+        <a href="{% url 'logout' %}">Изход</a>
+    </nav>
+</header>
+
+<main class="read-book-main">
+    <div id="reader-wrapper">
+        <h2>{{ book.title }}</h2>
+
+        <div id="pdf-container">
+            <canvas id="pdf-canvas"></canvas>
+            <div class="page-controls">
+                <button id="prev-page">Предишна</button>
+                <span>Страница: <span id="page-num"></span> / <span id="page-count"></span></span>
+                <button id="next-page">Следваща</button>
+            </div>
+        </div>
+
+        <div id="highlight-controls">
+            <button onclick="saveHighlight()">Добави към цитати</button>
+            <button onclick="addNote()">Добави бележка</button>
+
+            <input type="text" id="lookup-word" placeholder="Въведи дума за търсене">
+            <button onclick="lookupWord()">🔍 Търси</button>
+        </div>
+
+        <div id="definition-result" class="definition-box"></div>
+
+        <div class="quotes-box">
+            <h3>📌 Запазени цитати</h3>
+            {% if quotes %}
+                <ul>
+                    {% for q in quotes %}
+                        <li>
+                            <em>стр. {{ q.page }}:</em> {{ q.quote_text }}
+                            <button onclick="deleteQuote('{{ q.id }}')" class="small-action-button">🗑️</button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Все още нямаш запазени цитати.</p>
+            {% endif %}
+        </div>
+
+        <div class="notes-box">
+            <h3>📝 Бележки</h3>
+            {% if notes %}
+                <ul>
+                    {% for n in notes %}
+                        <li>
+                            <em>стр. {{ n.page }}:</em> {{ n.content }}
+                            <button onclick="deleteNote('{{ n.id }}')" class="small-action-button">🗑️</button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Все още нямаш бележки.</p>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<footer class="read-book-footer">
+    Digital Library © 2025
+</footer>
+
+<script>
+    const url = "{{ book.ebookfile.file.url }}";
+    let pdfDoc = null,
+        pageNum = localStorage.getItem("lastPage_{{ book.id }}") ? parseInt(localStorage.getItem("lastPage_{{ book.id }}")) : 1,
+        pageRendering = false,
+        pageNumPending = null,
+        scale = 1.5,
+        canvas = document.getElementById('pdf-canvas'),
+        ctx = canvas.getContext('2d');
+
+    function renderPage(num) {
+        pageRendering = true;
+        pdfDoc.getPage(num).then(function(page) {
+            const viewport = page.getViewport({ scale: scale });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+            const renderTask = page.render(renderContext);
+            renderTask.promise.then(function() {
+                pageRendering = false;
+                document.getElementById('page-num').textContent = num;
+                localStorage.setItem("lastPage_{{ book.id }}", num);
+                if (pageNumPending !== null) {
+                    renderPage(pageNumPending);
+                    pageNumPending = null;
+                }
+            });
+        });
+    }
+
+    function queueRenderPage(num) {
+        if (pageRendering) {
+            pageNumPending = num;
+        } else {
+            renderPage(num);
+        }
+    }
+
+    function onPrevPage() {
+        if (pageNum <= 1) return;
+        pageNum--;
+        queueRenderPage(pageNum);
+    }
+
+    function onNextPage() {
+        if (pageNum >= pdfDoc.numPages) return;
+        pageNum++;
+        queueRenderPage(pageNum);
+    }
+
+    function saveHighlight() {
+    const quote = prompt("Въведи цитат за страница " + pageNum + ":");
+    if (quote) {
+        fetch("/save_quote/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                book_id: '{{ book.id }}',
+                text: quote,
+                page: pageNum
+            })
+        }).then(response => {
+            if (response.ok) {
+                alert("Цитатът е запазен!");
+                location.reload();
+            } else {
+                alert("Възникна грешка при запазване.");
+            }
+        });
+    }
+}
+
+    function addNote() {
+    const note = prompt("Въведи бележка за страница " + pageNum + ":");
+    if (note) {
+        fetch("/save_note/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                book_id: '{{ book.id }}',
+                content: note,     
+                page: pageNum
+            })
+        }).then(response => {
+            if (response.ok) {
+                alert("Бележката е запазена!");
+                location.reload();  
+            } else {
+                alert("Възникна грешка при запазване.");
+            }
+        });
+    }
+}
+
+function deleteQuote(id) {
+    if (confirm("Сигурен ли си, че искаш да изтриеш този цитат?")) {
+        fetch("/delete_quote/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ id: id })
+        }).then(res => res.json()).then(data => {
+            if (data.status === "ok") {
+                location.reload();
+            } else {
+                alert("Грешка при изтриване на цитат.");
+            }
+        });
+    }
+}
+
+function deleteNote(id) {
+    if (confirm("Сигурен ли си, че искаш да изтриеш тази бележка?")) {
+        fetch("/delete_note/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ id: id })
+        }).then(res => res.json()).then(data => {
+            if (data.status === "ok") {
+                location.reload();
+            } else {
+                alert("Грешка при изтриване на бележка.");
+            }
+        });
+    }
+}
+
+    document.getElementById('prev-page').addEventListener('click', onPrevPage);
+    document.getElementById('next-page').addEventListener('click', onNextPage);
+
+    pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+        pdfDoc = pdfDoc_;
+        document.getElementById('page-count').textContent = pdfDoc.numPages;
+        renderPage(pageNum);
+    });
+
+window.lookupWord = function () {
+        const input = document.getElementById("lookup-word");
+        let word = input.value.trim();
+
+        const resultBox = document.getElementById("definition-result");
+        resultBox.classList.remove("visible"); 
+        resultBox.innerHTML = ""; 
+
+        if (!word) {
+            word = window.getSelection().toString().trim();
+            input.value = word;
+        }
+
+        if (!word) return;
+
+        resultBox.innerHTML = "<em>Превеждам и търся дефиниция...</em>";
+        resultBox.classList.add("visible");
+
+        fetch(`/translate_define/?word=${encodeURIComponent(word)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    resultBox.innerHTML = `<em>${data.error}</em>`;
+                    return;
+                }
+
+                let html = "";
+                const isCyrillic = /^[\u0400-\u04FF\s]+$/.test(data.original);
+
+                if (isCyrillic) {
+                    html += `<h3>„${data.original}“</h3>`;
+                } else {
+                    html += `<h3>„${data.original}“ → <strong>${data.translated}</strong></h3>`;
+                }
+
+                const partMap = {
+                    noun: "(същ.)",
+                    verb: "(гл.)",
+                    adjective: "(прил.)",
+                    adverb: "(нар.)",
+                    pronoun: "(местоим.)",
+                    conjunction: "(съюз)",
+                    preposition: "(предл.)",
+                    interjection: "(межд.)",
+                    determiner: "(опр.)",
+                    exclamation: "(възкл.)"
+                };
+
+                if (data.definitions && Object.keys(data.definitions).length > 0) {
+                    for (const part in data.definitions) {
+                        const translatedPart = partMap[part] || part;
+                        html += `<h4>${translatedPart}</h4><ul>`;
+                        data.definitions[part].forEach(def => {
+                            html += `<li>${def}</li>`;
+                        });
+                        html += `</ul>`;
+                    }
+                } else {
+                    html += `<p><em>${data.message || "Няма намерена дефиниция."}</em></p>`;
+                }
+
+                resultBox.innerHTML = html;
+                resultBox.classList.add("visible");
+            })
+            .catch(err => {
+                console.error("Грешка:", err);
+                resultBox.innerHTML = `<em>Възникна грешка при заявката: ${err.message}</em>`;
+                resultBox.classList.add("visible");
+            });
+    };
+
+
+let startTime = Date.now();
+let startPage = pageNum;
+
+window.addEventListener("beforeunload", function () {
+    let endTime = Date.now();
+    let durationMinutes = Math.round((endTime - startTime) / 60000);
+    let pagesRead = Math.abs(pageNum - startPage) + 1;
+
+    if (durationMinutes > 0) {
+        fetch("{% url 'save_reading_duration' book.id %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                duration_minutes: durationMinutes,
+                pages_read: pagesRead
+            })
+        });
+    }
+});
+</script>
+</body>
+</html>

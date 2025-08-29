@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+.vscode/
+
+db.sqlite3
+*.log
+
+media/
+
+
+
+

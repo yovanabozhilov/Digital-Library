@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Създай книга</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="welcome create-mybook-page">
+    <header>
+        <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+        <nav>
+            <a href="{% url 'main' %}">Основна страница</a>
+            <a href="{% url 'profile' %}">Профил</a>
+            <a href="{% url 'logout' %}">Изход</a>
+        </nav>
+    </header>
+
+    <main class="profile-main">
+        <div class="profile-box">
+            <h2>Създай своя книга</h2>
+
+            <form method="post" class="create-book-form">
+                {% csrf_token %}
+                
+                <label for="title">Заглавие:</label>
+                <input type="text" id="title" name="title" required>
+
+                <div class="form-button-row">
+                    <button type="submit" class="action-button" style="font-family: inherit; font-size: 15px; text-decoration: none;">Създай</button>
+                    <a href="{% url 'profile' %}" class="btn-read" style="font-family: inherit; font-size: 15px; text-decoration: none; padding-top: 10px">Откажи</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer style="position: fixed;bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; text-align: center; padding: 15px 0; font-size: 14px;">
+        Digital Library © 2025
+    </footer>
+</body>
+</html>

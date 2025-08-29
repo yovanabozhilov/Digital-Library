@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg" class="book-detail-html">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }} | Digital Library</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Open+Sans&display=swap" rel="stylesheet">
+    <script src="{% static 'js/book_js/book_detail.js' %}" defer></script>
+</head>
+<body class="welcome book-detail-page">
+
+<header class="book-detail-header">
+    <img src="{% static 'images/logo.png' %}" class="book-detail-logo" alt="Logo">
+    <nav class="book-detail-nav">
+        <a href="{% url 'main' %}">Основна страница</a>
+        <a href="{% url 'my_added_books' %}">Моята библиотека</a>
+        <a href="{% url 'profile' %}">Профил</a>
+        <a href="{% url 'logout' %}">Изход</a>
+    </nav>
+</header>
+
+<main class="book-detail-main">
+    <h1 class="book-detail-title">{{ book.title }}</h1>
+
+    <p><strong>Автор:</strong> {{ book.author }}</p>
+    <p><strong>Жанр:</strong> {{ genre_display }}</p>
+    <p><strong>Настроение:</strong> {{ mood_display }}</p>
+    <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+    <p><strong>Описание:</strong></p>
+    <p>{{ book.description|linebreaks }}</p>
+
+    {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" alt="Корица на {{ book.title }}" class="book-detail-cover">
+    {% endif %}
+
+    {% if book.ebookfile.file %}
+        <div class="book-detail-center">
+            <a href="{{ book.ebookfile.file.url }}" download class="book-download-link">⬇️ Свали книгата</a>
+        </div>
+    {% endif %}
+
+    <hr>
+    <h3>Ревюта</h3>
+
+    {% for review in reviews %}
+    <div class="book-detail-review">
+        {% if user_review and user_review.id == review.id %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="review_id" value="{{ review.id }}">
+            <label>Оценка:</label><br>
+            <input type="number" name="rating" min="1" max="5" value="{{ review.rating }}" required><br><br>
+            <label>Коментар:</label><br>
+            <textarea name="content" rows="5" required>{{ review.content }}</textarea><br><br>
+            <div class="book-detail-edit-buttons">
+              <button type="submit" class="book-detail-edit-btn">Запази</button>
+              <a href="{% url 'book_detail' book.id %}" class="book-detail-edit-btn" style="font-size: 15px;">Отказ</a>
+            </div>
+        </form>
+        {% else %}
+        <p><strong>{{ review.user.username }}</strong> ⭐ <strong>{{ review.rating }}/5</strong></p>
+        <p>{{ review.content }}</p>
+
+        {% if review.user == user %}
+        <form method="post" class="book-detail-inline-form">
+            {% csrf_token %}
+            <input type="hidden" name="edit_review_id" value="{{ review.id }}">
+            <button type="submit" class="book-detail-btn">Редактирай</button>
+        </form>
+        <form method="post" class="book-detail-inline-form book-detail-form-right">
+            {% csrf_token %}
+            <input type="hidden" name="delete_review_id" value="{{ review.id }}">
+            <button type="submit" class="book-detail-btn">Изтрий</button>
+        </form>
+        {% endif %}
+        {% endif %}
+        <hr>
+    </div>
+    {% empty %}
+    <p>Няма ревюта все още.</p>
+    <hr>
+    {% endfor %}
+
+    {% if user.is_authenticated and not user_review %}
+    <h3>Добави ревю</h3>
+    <form method="post" class="book-detail-review-form">
+        {% csrf_token %}
+        <label>Оценка:</label><br>
+        <input type="number" name="rating" min="1" max="5" required><br><br>
+        <label>Коментар:</label><br>
+        <textarea name="content" rows="5" required></textarea><br><br>
+        <button type="submit" class="book-detail-btn">Запази</button>
+    </form>
+    {% endif %}
+</main>
+
+<footer class="book-detail-footer">
+    Digital Library © 2025
+</footer>
+
+</body>
+</html>

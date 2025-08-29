@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        .pdf-template {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            color: #000;
+        }
+
+        .pdf-template h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .pdf-template h2 {
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .pdf-template .chapter-content {
+            margin-bottom: 40px;
+        }
+
+        .pdf-template .chapter-content p {
+            margin: 8px 0;
+            text-align: justify;
+        }
+
+        .pdf-template .text-left { text-align: left; }
+        .pdf-template .text-center { text-align: center; }
+        .pdf-template .text-right { text-align: right; }
+        .pdf-template .text-justify { text-align: justify; }
+
+        .pdf-template strong {
+            font-weight: bold;
+        }
+
+        .pdf-template em {
+            font-style: italic;
+        }
+
+        .pdf-template img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .pdf-template .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+<div class="pdf-template">
+
+    <h1>{{ mybook.title }}</h1>
+
+    {% for chapter in chapters %}
+        <div class="chapter-content">
+            <h2>{{ chapter.title }}</h2>
+            <div>
+                {{ chapter.content|safe }}
+            </div>
+        </div>
+
+        {% if not forloop.last %}
+            <div class="page-break"></div>
+        {% endif %}
+    {% endfor %}
+
+</div>
+</body>
+</html>

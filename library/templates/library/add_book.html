@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Добави книга | Digital Library</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Open+Sans&display=swap" rel="stylesheet"> 
+</head>
+<body class="welcome add-book-bg">
+<header>
+    <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
+    <nav>
+        <a href="{% url 'main' %}" class="{% if request.path == '/main/' %}active{% endif %}">Основна страница</a>
+        <a href="{% url 'add_book' %}" class="{% if request.path == '/books/add/' %}active{% endif %}">Добави книга</a>
+        <a href="{% url 'profile' %}" class="{% if request.path == '/profile/' %}active{% endif %}">Профил</a>
+        <a href="{% url 'logout' %}">Изход</a>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="add-book-container">
+        <div class="left-panel">
+            <h2 class="bookstore-title">Добави нова книга</h2>
+            <p class="description">Попълни необходимата информация за книгата и качи файл.</p>
+            <form method="post" enctype="multipart/form-data" class="book-form">
+                {% csrf_token %}
+                <div class="form-fields">
+    <div class="form-row">
+        <div>
+            {{ book_form.title.label_tag }} {{ book_form.title }}
+        </div>
+        <div>
+            {{ book_form.author.label_tag }} {{ book_form.author }}
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div>
+            {{ book_form.mood.label_tag }} {{ book_form.mood }}
+        </div>
+        <div>
+            {{ book_form.genre.label_tag }} {{ book_form.genre }}
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div>
+            {{ book_form.isbn.label_tag }} {{ book_form.isbn }}
+        </div>
+        <div>
+            {{ book_form.language.label_tag }} {{ book_form.language }}
+        </div>
+    </div>
+
+    {{ book_form.description.label_tag }} {{ book_form.description }}
+
+    {{ book_form.status.label_tag }} {{ book_form.status }}
+
+    <label for="id_cover_image">{{ book_form.cover_image.label }}</label>
+    <input type="file" id="id_cover_image" name="cover_image" accept="image/*">
+    <button type="button" class="custom-file-button" onclick="document.getElementById('id_cover_image').click()">Избери файл</button>
+    <span id="cover-file-name" class="file-name">Не е избран файл</span>
+
+    <label for="id_file">{{ file_form.file.label }}</label>
+    <input type="file" id="id_file" name="file" accept="application/pdf">
+    <button type="button" class="custom-file-button" onclick="document.getElementById('id_file').click()">Избери файл</button>
+    <span id="pdf-file-name" class="file-name">Не е избран файл</span>
+</div>
+                <button type="submit" class="upload-button" style="margin-top: 20px;">Качи</button>
+            </form>
+        </div>
+
+        <div class="right-panel">
+            <div class="book-image-placeholder">
+                {% if book_form.cover_image.value %}
+                    <img src="{{ book_form.cover_image.value|add:'/media/' }}" alt="Корица на книгата" class="book-cover">
+                {% else %}
+                    <img src="{% static 'images/book_placeholder.png' %}" alt="Book cover preview" class="book-cover">
+                {% endif %}
+                <p class="book-preview-text">Корица на книгата</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    Digital Library © 2025
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#id_genre').select2({
+            placeholder: "Избери жанрове",
+            allowClear: true,
+            width: 'style'
+        });
+        $('#id_mood').select2({
+            placeholder: "Избери настроение",
+            allowClear: true,
+            width: 'style'
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const fileInput = document.getElementById("id_cover_image");
+        const imagePreview = document.querySelector(".book-image-placeholder img");
+
+        if (fileInput) {
+            fileInput.addEventListener("change", function () {
+                const file = fileInput.files[0];
+                if (file && file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        document.getElementById('id_cover_image').addEventListener('change', function () {
+            const fileName = this.files[0] ? this.files[0].name : 'Не е избран файл';
+            document.getElementById('cover-file-name').innerText = fileName;
+        });
+
+        document.getElementById('id_file').addEventListener('change', function () {
+            const fileName = this.files[0] ? this.files[0].name : 'Не е избран файл';
+            document.getElementById('pdf-file-name').innerText = fileName;
+        });
+    });
+</script>
+
+</body>
+</html>
