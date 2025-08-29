@@ -33,3 +33,4 @@
 - **Текстова обработка:** `beautifulsoup4` (парс на HTML към DOCX)
 - **Файлове/изображения:** `Pillow`
 - **Време:** `python-dateutil` (*relativedelta*)
+- **WYSIWYG редактор с CKEditor** за писане/форматиране на съдържание 
